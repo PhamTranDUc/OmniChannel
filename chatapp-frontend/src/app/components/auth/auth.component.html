@@ -1,0 +1,50 @@
+<!-- Registration Form -->
+<div class="row p-2 bg-white rounded" *ngIf="!isLogin">
+  <div class="col-6">
+    <img class="img-cover" src="../../../assets/register-cover.jpg" />
+  </div>
+  <div class="col-6 d-flex justify-content-center align-items-center">
+    <form
+      class="w-100 py-3"
+      (ngSubmit)="onUserRegister()"
+      novalidate
+      #f2="ngForm"
+    >
+      <h1 class="h3 mb-3 fw-normal">Register an account</h1>
+      <div class="form-floating">
+        <input
+          type="text"
+          class="form-control"
+          id="registerName"
+          name="registerName"
+          placeholder="Name"
+          [(ngModel)]="name"
+          required
+          #registerName="ngModel"
+        />
+        <label for="registerName">Name</label>
+      </div>
+      <ul
+        *ngIf="registerName.dirty && registerName.invalid"
+        class="text-danger list-unstyled m-0"
+      >
+        <li *ngIf="registerName.errors?.['required']">Name is required</li>
+      </ul>
+      <button
+        class="btn btn-primary w-100 py-2 mt-3"
+        type="submit"
+        [disabled]="!f2.valid"
+      >
+        Register
+      </button>
+      <p class="mt-2 mb-3 text-body-secondary text-center">
+        Already registered?
+        <span
+          class="text-decoration-underline cursor-pointer text-primary"
+          (click)="toggleAuth()"
+          >Signin</span
+        >
+      </p>
+    </form>
+  </div>
+</div>

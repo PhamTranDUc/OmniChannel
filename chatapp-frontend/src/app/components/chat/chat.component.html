@@ -1,0 +1,204 @@
+<div class="container-fluid">
+  <!-- Row for dividing the content into two columns -->
+  <div class="row">
+    <!-- Left column for user information, user list, and conversations list -->
+    <div
+      [ngClass]="
+        selectedConversationId == -1
+          ? 'd-block d-sm-block'
+          : 'd-none d-sm-block'
+      "
+      class="col-sm-5 col-md-4 col-lg-3"
+    >
+      <div class="vh-100 d-flex flex-column">
+        <div class="py-2">
+          <h4>Hello, Hassan Mahfuj</h4>
+          <div class="d-flex">
+            <!-- Toggle user list, and conversations list -->
+            <button
+              (click)="onShowHideUserConversation()"
+              class="btn btn-sm btn-success"
+            >
+              <span *ngIf="!showUserState">Show Available Users</span>
+              <span *ngIf="showUserState">Show Conversations</span>
+            </button>
+            <button (click)="onUserLogout()" class="btn btn-sm btn-danger ms-2">
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <!-- Users list section -->
+        <h5 *ngIf="showUserState" class="mt-2 m-0">Available Users</h5>
+        <div *ngIf="showUserState" class="scrollarea">
+          <!-- Display a list of users -->
+          <div
+            *ngFor="let u of users"
+            (click)="onUserSelected(u.userId, u.firstName + ' ' + u.lastName)"
+            class="p-2 mt-2 cursor-pointer bg-secondary-subtle rounded"
+          >
+            <h5>{{ u.firstName + " " + u.lastName }}</h5>
+          </div>
+        </div>
+
+        <!-- Conversations list section -->
+        <h5 *ngIf="!showUserState" class="mt-2 word-break-all m-0">
+          Conversations
+        </h5>
+        <div *ngIf="!showUserState" class="scrollarea">
+          <div
+            *ngFor="let c of userConversations; let i = index"
+            (click)="onConversationSelected(i)"
+            class="p-2 mt-2 d-flex align-items-center cursor-pointer rounded bg-secondary-subtle"
+          >
+            <div>
+              <span class="circular-letter me-2">{{
+                c.otherUserName.charAt(0)
+              }}</span>
+            </div>
+            <div class="w-100">
+              <h6 class="m-0">{{ c.otherUserName }}</h6>
+              <small class="m-0">{{ c.lastMessage }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column for displaying selected conversations -->
+    <div
+      [ngClass]="
+        selectedConversationId == -1
+          ? 'd-none d-sm-block'
+          : 'd-block d-sm-block'
+      "
+      class="col-sm-7 col-md-8 col-lg-9 bg-body-tertiary p-0 border-start border-secondary-subtle"
+    >
+      <!-- Message for when no conversation is selected -->
+      <div
+        *ngIf="selectedConversationId == -1"
+        class="d-flex justify-content-center align-items-center vh-100"
+      >
+        <div class="text-center">
+          <i class="bi bi-chat-dots fs-1"></i>
+          <h4>No conversation selected</h4>
+          <p>Click on a conversation or find<br />new user to start chat</p>
+        </div>
+      </div>
+
+      <!-- Conversation display -->
+      <div
+        *ngIf="selectedConversationId != -1"
+        class="vh-100 d-flex flex-column"
+      >
+        <div class="p-2 d-flex justify-content-between bg-body-secondary">
+          <div class="d-flex align-items-center justify-content-center">
+            <button (click)="onCloseChat()" class="btn py-0 me-1 d-sm-none">
+              <i class="bi bi-list fs-4"></i>
+            </button>
+            <h4 class="m-0">{{ selectedConversationReceiverName }}</h4>
+          </div>
+          <button
+            class="btn btn-light"
+            data-bs-toggle="modal"
+            data-bs-target="#deleteChatModal"
+          >
+            <i class="bi bi-trash-fill text-danger"></i> Delete Chat
+          </button>
+        </div>
+
+        <!-- Main conversation display area -->
+        <div class="main-flex-grow scrollarea p-2">
+          <div *ngFor="let m of selectedConversation" class="mt-2">
+            <div
+              class="text-white rounded py-1 px-2 mw-75"
+              [ngClass]="
+                currentUser.userId == m.senderId
+                  ? 'float-end bg-primary-1 text-white'
+                  : 'float-start bg-secondary-subtle text-dark'
+              "
+            >
+              <div
+                class="fs-6 word-break"
+                [ngClass]="
+                  currentUser.userId == m.senderId ? 'text-white' : 'text-dark'
+                "
+              >
+                {{ m.message }}
+              </div>
+              <div
+                class="fs-7"
+                [ngClass]="
+                  currentUser.userId == m.senderId
+                    ? 'float-end text-white-50'
+                    : 'float-start text-black-50'
+                "
+              >
+                {{ m.timestamp | betterDate }}
+              </div>
+            </div>
+            <div *ngIf="currentUser.userId == m.senderId">
+              <i
+                (click)="onDeleteMessage(m.messageId)"
+                class="bi bi-trash text-danger p-2 cursor-pointer float-end opacity-hover"
+              ></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message input form -->
+        <div>
+          <form (submit)="onSendMessage()">
+            <div class="d-flex px-4 py-2 bg-body-secondary">
+              <input
+                class="form-control"
+                type="text"
+                name="message"
+                placeholder="Type a message"
+                [(ngModel)]="message"
+              />
+              <button type="submit" class="btn bg-primary-1 ms-2">
+                <i class="bi bi-send text-white"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Chat Modal -->
+<div class="modal fade" id="deleteChatModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">
+          Delete conversation
+        </h1>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        Are you sure about to delete this conversation?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button
+          (click)="onDeleteConversation()"
+          type="button"
+          class="btn btn-danger"
+          data-bs-dismiss="modal"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
